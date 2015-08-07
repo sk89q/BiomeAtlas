@@ -47,7 +47,7 @@ public class CommandBiomeAtlas extends CommandBase {
 
             BiomeMapper mapper = new BiomeMapper();
             mapper.getListeners().add(new BroadcastObserver());
-            mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_map.png"));
+            mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_" + world.getSeed() + ".png"));
         } else {
             throw new WrongUsageException(this.getCommandUsage(sender));
         }

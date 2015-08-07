@@ -20,15 +20,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class BiomeMapper {
 
     private final List<Predicate<String>> listeners = Lists.newArrayList();
+    private int lineHeight = 8;
+    private int statsLegendSpacing = lineHeight / 2;
+    private int legendMapSpacing = 5;
+    private int iconTextSpacing = 5;
+    private int legendLabelSpacing = 200;
+    private int messageRate = 500;
 
     public List<Predicate<String>> getListeners() {
         return listeners;
     }
 
+
+
     public void generate(World world, int centerX, int centerZ, int apothem, File outputFile) {
         checkNotNull(outputFile, "outputFile");
-
-        sendStatus("Generating a map of biomes...");
 
         WorldChunkManager chunkManager = world.getWorldChunkManager();
 
@@ -40,6 +46,9 @@ public class BiomeMapper {
         int maxChunkZ = centerChunkZ + apothem;
 
         int mapLength = apothem * 2 + 1;
+
+        sendStatus("Generating a map of biomes at (" + centerX + ", " + centerZ + ") spanning " + (mapLength * 16) + ", " + (mapLength * 16) + "...");
+
         BufferedImage mapImage = new BufferedImage(mapLength, mapLength, BufferedImage.TYPE_INT_RGB);
 
         // Progress tracking
@@ -62,7 +71,7 @@ public class BiomeMapper {
                 completedChunks++;
 
                 long now = System.currentTimeMillis();
-                if (now - lastMessageTime > 500) {
+                if (now - lastMessageTime > messageRate) {
                     sendStatus(String.format("BiomeAtlas: %d/%d (%f%%)", completedChunks, chunkCount, (completedChunks / (double) chunkCount * 100)));
                     lastMessageTime = now;
                 }
@@ -71,11 +80,11 @@ public class BiomeMapper {
 
         sendStatus("Creating output image...");
 
-        int lineHeight = 8;
-        int legendWidth = 200;
         int legendHeight = seenBiomes.size() * lineHeight;
+        int outputWidth = mapImage.getWidth() + legendLabelSpacing;
+        int outputHeight = Math.max(mapImage.getHeight(), legendHeight + lineHeight + statsLegendSpacing);
 
-        BufferedImage outputImage = new BufferedImage(mapImage.getWidth() + legendWidth, Math.max(mapImage.getHeight(), legendHeight), BufferedImage.TYPE_INT_RGB);
+        BufferedImage outputImage = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = (Graphics2D) outputImage.getGraphics();
 
         try {
@@ -85,11 +94,19 @@ public class BiomeMapper {
 
             // Copy image to output image
             g2d.drawImage(mapImage, 0, 0, null);
+
+            // Paint size
+            g2d.setFont(new Font("Sans", 0, 9));
+            FontMetrics fm = g2d.getFontMetrics();
+            g2d.setPaint(Color.GRAY);
+            g2d.drawString(mapLength * 16 + " x " + mapLength * 16 + " at " + centerX + ", " + centerZ,
+                    mapImage.getWidth() + legendMapSpacing, outputHeight - fm.getHeight() / 2 + statsLegendSpacing);
         } finally {
             g2d.dispose();
         }
 
-        paintLegend(outputImage, seenBiomes, mapImage.getWidth() + 5, 0);
+        // Paint legend
+        paintLegend(outputImage, seenBiomes, mapImage.getWidth() + legendMapSpacing, 0);
 
         try {
             ImageIO.write(outputImage, "png", outputFile);
@@ -113,8 +130,6 @@ public class BiomeMapper {
         List<BiomeGenBase> sortedBiomes = Lists.newArrayList(biomes);
         Collections.sort(sortedBiomes, new BiomeColorComparator());
 
-        int lineHeight = 8;
-
         Graphics2D g2d = (Graphics2D) image.getGraphics();
 
         try {
@@ -128,7 +143,7 @@ public class BiomeMapper {
                 g2d.fill(new Rectangle(baseX, baseY + y, lineHeight, lineHeight));
 
                 g2d.setPaint(Color.BLACK);
-                g2d.drawString(biome.biomeName, baseX + lineHeight + 5, baseY + y + fm.getHeight() / 2 + 1);
+                g2d.drawString(biome.biomeName, baseX + lineHeight + iconTextSpacing, baseY + y + fm.getHeight() / 2 + 1);
 
                 i++;
             }
@@ -142,7 +157,6 @@ public class BiomeMapper {
     }
 
     private static class BiomeColorComparator implements Comparator<BiomeGenBase> {
-
         @Override
         public int compare(BiomeGenBase o1, BiomeGenBase o2) {
             Color c1 = new Color(o1.color);
@@ -156,7 +170,13 @@ public class BiomeMapper {
             } else if (hsv1[0] > hsv2[0]) {
                 return 1;
             } else {
-                return 0;
+                if (hsv1[1] < hsv2[1]) {
+                    return -1;
+                } else if (hsv1[1] > hsv2[1]) {
+                    return 1;
+                } else {
+                    return 0;
+                }
             }
         }
     }

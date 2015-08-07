@@ -42,7 +42,7 @@ public class BiomeAtlas {
 
                 BiomeMapper mapper = new BiomeMapper();
                 mapper.getListeners().add(new LoggerObserver());
-                mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_map.png"));
+                mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_" + world.getSeed() + ".png"));
             }
         }
     }
