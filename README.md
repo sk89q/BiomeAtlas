@@ -1,4 +1,4 @@
-# Visbiome
+# BiomeAtlas
 
 A Forge mod for 1.7.10 that generates a map of biomes.
 
@@ -10,11 +10,11 @@ A Forge mod for 1.7.10 that generates a map of biomes.
 
 ## Usage
 
-    /visbiome <apothem>
+    /biomeatlas <apothem>
 
 Or start a server with:
 
-	-Dvisbiome.mapApothemAtStart=<apothem>
+	-Dbiomeatlas.mapApothemAtStart=<apothem>
 
 to have it map immediately after world load.
     

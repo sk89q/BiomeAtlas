@@ -1,7 +1,7 @@
-package com.sk89q.visbiome.command;
+package com.sk89q.biomeatlas.command;
 
 import com.google.common.collect.Lists;
-import com.sk89q.visbiome.Visbiome;
+import com.sk89q.biomeatlas.BiomeAtlas;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -20,16 +20,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class CommandVisbiome extends CommandBase {
+public class CommandBiomeAtlas extends CommandBase {
     
     @Override
     public String getCommandName() {
-        return "visbiome";
+        return "biomeatlas";
     }
     
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/visbiome <apothem>";
+        return "/biomeatlas <apothem>";
     }
     
     @Override
@@ -127,7 +127,7 @@ public class CommandVisbiome extends CommandBase {
 
                     long now = System.currentTimeMillis();
                     if (now - then > 500) {
-                        broadcast(String.format("Visbiome: %d/%d (%f%%)", done, count, (done / (double) count * 100)));
+                        broadcast(String.format("BiomeAtlas: %d/%d (%f%%)", done, count, (done / (double) count * 100)));
                         then = now;
                     }
                 }
@@ -148,12 +148,12 @@ public class CommandVisbiome extends CommandBase {
         }
 
         try {
-            File file = new File("visbiome_map.png");
+            File file = new File("biomeatlas_map.png");
             ImageIO.write(image, "png", file);
 
             broadcast("Written to: " + file.getAbsolutePath());
         } catch (IOException e) {
-            Visbiome.logger.error("Failed to generate biome map", e);
+            BiomeAtlas.logger.error("Failed to generate biome map", e);
             broadcast("Map generation failed because the file couldn't be written! More details can be found in the log.");
         }
     }

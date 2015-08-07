@@ -1,7 +1,7 @@
 [
   {
-    "modid": "visbiome",
-    "name": "Visbiome",
+    "modid": "biomeatlas",
+    "name": "BiomeAtlas",
     "description": "Biome visualization.",
     "version": "${version}",
     "mcversion": "${mcversion}",
