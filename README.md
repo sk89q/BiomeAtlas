@@ -50,10 +50,11 @@ Windows:
 
 ```batch
 @echo off
-for /l %x in (1, 1, 50) do (
+for /l %%x in (1, 1, 50) do (
    rmdir /s /q world
    java -Xmx5G -DbiomeAtlas.mapOnStartup=true -DbiomeAtlas.exitOnFinish=false -jar forge.jar
 )
+pause
 ```
 
 You should find a bunch of **biomeatlas_<seed>.png** files in the same directory.
