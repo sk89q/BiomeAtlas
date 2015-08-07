@@ -18,7 +18,7 @@ Or start a server with:
 
 to have it map immediately after world load.
     
-Apothem is the "radius" of a square around you.
+Apothem is the "radius" of a square around you in chunks (not blocks). Each chunk is a 16x16 area of blocks.
 
 ## License
 
