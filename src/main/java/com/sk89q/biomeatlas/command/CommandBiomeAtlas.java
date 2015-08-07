@@ -1,6 +1,6 @@
 package com.sk89q.biomeatlas.command;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.sk89q.biomeatlas.BiomeAtlas;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -19,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public class CommandBiomeAtlas extends CommandBase {
     
@@ -82,13 +83,6 @@ public class CommandBiomeAtlas extends CommandBase {
 
         WorldChunkManager chunkManager = world.getWorldChunkManager();
 
-        List<BiomeGenBase> biomes = Lists.newArrayList();
-        for (BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
-            if (biome != null) {
-                biomes.add(biome);
-            }
-        }
-
         int centerChunkX = centerX >> 4;
         int centerChunkZ = centerZ >> 4;
         int minChunkX = centerChunkX - apothem;
@@ -96,52 +90,64 @@ public class CommandBiomeAtlas extends CommandBase {
         int maxChunkX = centerChunkX + apothem;
         int maxChunkZ = centerChunkZ + apothem;
 
-        int textWidth = 200;
+        int mapLength = apothem * 2 + 1;
+        BufferedImage mapImage = new BufferedImage(mapLength, mapLength, BufferedImage.TYPE_INT_RGB);
+
+        // Progress tracking
+        int chunkCount = mapLength * mapLength;
+        int completedChunks = 0;
+        long lastMessageTime = System.currentTimeMillis();
+
+        Set<BiomeGenBase> seenBiomes = Sets.newHashSet();
+
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+                int x = chunkX - minChunkX;
+                int y = chunkZ - minChunkZ;
+
+                BiomeGenBase biome = chunkManager.getBiomeGenAt(chunkX << 4, chunkZ << 4);
+                seenBiomes.add(biome);
+
+                mapImage.setRGB(x, y, getBiomeRGB(biome));
+
+                completedChunks++;
+
+                long now = System.currentTimeMillis();
+                if (now - lastMessageTime > 500) {
+                    broadcast(String.format("BiomeAtlas: %d/%d (%f%%)", completedChunks, chunkCount, (completedChunks / (double) chunkCount * 100)));
+                    lastMessageTime = now;
+                }
+            }
+        }
+
         int lineHeight = 8;
-        int textHeight = biomes.size() * lineHeight;
+        int legendWidth = 200;
+        int legendHeight = seenBiomes.size() * lineHeight;
 
-        int length = apothem * 2 + 1;
-        int count = length * length;
-        int done = 0;
-        long then = System.currentTimeMillis();
-
-        BufferedImage image = new BufferedImage(length + textWidth, Math.max(length, textHeight), BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = (Graphics2D) image.getGraphics();
+        BufferedImage outputImage = new BufferedImage(mapLength + legendWidth, Math.max(mapLength, legendHeight), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = (Graphics2D) outputImage.getGraphics();
 
         try {
+            // Background
             g2d.setColor(Color.WHITE);
-            g2d.fill(new Rectangle(0, 0, image.getWidth(), image.getHeight()));
+            g2d.fill(new Rectangle(0, 0, outputImage.getWidth(), outputImage.getHeight()));
+
+            // Copy image to output image
+            g2d.drawImage(mapImage, 0, 0, null);
+
             g2d.setFont(new Font("Sans", 0, 9));
             FontMetrics fm = g2d.getFontMetrics();
 
-            for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-                for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
-                    int x = chunkX - minChunkX;
-                    int y = chunkZ - minChunkZ;
-
-                    BiomeGenBase biome = chunkManager.getBiomeGenAt(chunkX << 4, chunkZ << 4);
-
-                    image.setRGB(x, y, getBiomeRGB(biome));
-
-                    done++;
-
-                    long now = System.currentTimeMillis();
-                    if (now - then > 500) {
-                        broadcast(String.format("BiomeAtlas: %d/%d (%f%%)", done, count, (done / (double) count * 100)));
-                        then = now;
-                    }
-                }
-            }
-
-            for (int i = 0; i < biomes.size(); i++) {
+            int i = 0;
+            for (BiomeGenBase biome : seenBiomes) {
                 int y = lineHeight * i;
-
-                BiomeGenBase biome = biomes.get(i);
                 g2d.setColor(new Color(getBiomeRGB(biome)));
-                g2d.fill(new Rectangle(length + 5, y, lineHeight, lineHeight));
+                g2d.fill(new Rectangle(mapLength + 5, y, lineHeight, lineHeight));
 
                 g2d.setPaint(Color.BLACK);
-                g2d.drawString(biome.biomeName, length + lineHeight + 10, y + fm.getHeight() / 2 + 1);
+                g2d.drawString(biome.biomeName, mapLength + lineHeight + 10, y + fm.getHeight() / 2 + 1);
+
+                i++;
             }
         } finally {
             g2d.dispose();
@@ -149,7 +155,7 @@ public class CommandBiomeAtlas extends CommandBase {
 
         try {
             File file = new File("biomeatlas_map.png");
-            ImageIO.write(image, "png", file);
+            ImageIO.write(outputImage, "png", file);
 
             broadcast("Written to: " + file.getAbsolutePath());
         } catch (IOException e) {
