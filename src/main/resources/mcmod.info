@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "visbiome",
+    "name": "Visbiome",
+    "description": "Biome visualization.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "logoFile": "",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["sk89q"],
+    "credits": "sk89q",
+    "parent": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
