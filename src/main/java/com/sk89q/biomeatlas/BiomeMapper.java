@@ -159,8 +159,8 @@ public class BiomeMapper {
     private static class BiomeColorComparator implements Comparator<BiomeGenBase> {
         @Override
         public int compare(BiomeGenBase o1, BiomeGenBase o2) {
-            Color c1 = new Color(o1.color);
-            Color c2 = new Color(o2.color);
+            Color c1 = new Color(getBiomeRGB(o1));
+            Color c2 = new Color(getBiomeRGB(o2));
             float[] hsv1 = new float[3];
             float[] hsv2 = new float[3];
             Color.RGBtoHSB(c1.getRed(), c1.getGreen(), c1.getBlue(), hsv1);
