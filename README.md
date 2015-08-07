@@ -1,6 +1,9 @@
 # BiomeAtlas
 
-A Forge mod for 1.7.10 that generates a map of biomes.
+A Forge mod for 1.7.10 that generates a map of biomes via command or on startup.
+
+* Supports mod-added biomes.
+* Great for finding that perfect seed.
 
 ![Sample](readme/sample.png)
 
