@@ -2,6 +2,7 @@ package com.sk89q.biomeatlas;
 
 import com.google.common.base.Predicate;
 import com.sk89q.biomeatlas.command.CommandBiomeAtlas;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -31,18 +32,23 @@ public class BiomeAtlas {
 
     @EventHandler
     public void serverStarted(FMLServerStartedEvent evt) {
-        String mapOnStartProp = System.getProperty("biomeatlas.mapApothemAtStart");
-        if (mapOnStartProp != null) {
-            int apothem = Integer.parseInt(mapOnStartProp);
+        if (System.getProperty("biomeAtlas.mapOnStartup", "false").equals("true")) {
+            int apothem = Integer.parseInt(System.getProperty("biomeAtlas.apothem", "250"));
+            int dimension = Integer.parseInt(System.getProperty("biomeAtlas.mapDimension", "0"));
+            int centerX = Integer.parseInt(System.getProperty("biomeAtlas.centerX", "0"));
+            int centerZ = Integer.parseInt(System.getProperty("biomeAtlas.centerZ", "0"));
 
             if (apothem > 0) {
-                World world = MinecraftServer.getServer().worldServerForDimension(0);
-                int centerX = 00;
-                int centerZ = 0;
+                World world = MinecraftServer.getServer().worldServerForDimension(dimension);
 
                 BiomeMapper mapper = new BiomeMapper();
                 mapper.getListeners().add(new LoggerObserver());
                 mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_" + world.getSeed() + ".png"));
+
+                if (System.getProperty("biomeAtlas.exitOnFinish", "false").equals("true")) {
+                    logger.info("BiomeAtlas finished generating! Now exiting Java as enabled.");
+                    FMLCommonHandler.instance().exitJava(0, false);
+                }
             }
         }
     }
