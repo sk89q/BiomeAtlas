@@ -45,7 +45,7 @@ Linux:
 for i in `seq 1 50`;
 do
 	rm -Rf world
-	java -Xmx5G -DbiomeAtlas.mapOnStartup=true -DbiomeAtlas.exitOnFinish=false -jar forge.jar
+	java -Xmx5G -DbiomeAtlas.mapOnStartup=true -DbiomeAtlas.exitOnFinish=true -jar forge.jar nogui
 done
 ```
 
@@ -55,7 +55,7 @@ Windows:
 @echo off
 for /l %%x in (1, 1, 50) do (
    rmdir /s /q world
-   java -Xmx5G -DbiomeAtlas.mapOnStartup=true -DbiomeAtlas.exitOnFinish=false -jar forge.jar
+   java -Xmx5G -DbiomeAtlas.mapOnStartup=true -DbiomeAtlas.exitOnFinish=true -jar forge.jar nogui
 )
 pause
 ```
