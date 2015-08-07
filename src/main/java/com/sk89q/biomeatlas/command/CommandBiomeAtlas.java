@@ -1,5 +1,6 @@
 package com.sk89q.biomeatlas.command;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.sk89q.biomeatlas.BiomeAtlas;
 import net.minecraft.command.CommandBase;
@@ -18,8 +19,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class CommandBiomeAtlas extends CommandBase {
     
@@ -120,9 +121,14 @@ public class CommandBiomeAtlas extends CommandBase {
             }
         }
 
+        broadcast("Creating output image...");
+
+        List<BiomeGenBase> sortedBiomes = Lists.newArrayList(seenBiomes);
+        Collections.sort(sortedBiomes, new BiomeColorComparator());
+
         int lineHeight = 8;
         int legendWidth = 200;
-        int legendHeight = seenBiomes.size() * lineHeight;
+        int legendHeight = sortedBiomes.size() * lineHeight;
 
         BufferedImage outputImage = new BufferedImage(mapLength + legendWidth, Math.max(mapLength, legendHeight), BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = (Graphics2D) outputImage.getGraphics();
@@ -139,7 +145,7 @@ public class CommandBiomeAtlas extends CommandBase {
             FontMetrics fm = g2d.getFontMetrics();
 
             int i = 0;
-            for (BiomeGenBase biome : seenBiomes) {
+            for (BiomeGenBase biome : sortedBiomes) {
                 int y = lineHeight * i;
                 g2d.setColor(new Color(getBiomeRGB(biome)));
                 g2d.fill(new Rectangle(mapLength + 5, y, lineHeight, lineHeight));
@@ -153,6 +159,8 @@ public class CommandBiomeAtlas extends CommandBase {
             g2d.dispose();
         }
 
+        broadcast("Writing image to disk...");
+
         try {
             File file = new File("biomeatlas_map.png");
             ImageIO.write(outputImage, "png", file);
@@ -161,6 +169,26 @@ public class CommandBiomeAtlas extends CommandBase {
         } catch (IOException e) {
             BiomeAtlas.logger.error("Failed to generate biome map", e);
             broadcast("Map generation failed because the file couldn't be written! More details can be found in the log.");
+        }
+    }
+
+    private static class BiomeColorComparator implements Comparator<BiomeGenBase> {
+
+        @Override
+        public int compare(BiomeGenBase o1, BiomeGenBase o2) {
+            Color c1 = new Color(o1.color);
+            Color c2 = new Color(o2.color);
+            float[] hsv1 = new float[3];
+            float[] hsv2 = new float[3];
+            Color.RGBtoHSB(c1.getRed(), c1.getGreen(), c1.getBlue(), hsv1);
+            Color.RGBtoHSB(c2.getRed(), c2.getGreen(), c2.getBlue(), hsv2);
+            if (hsv1[0] < hsv2[0]) {
+                return -1;
+            } else if (hsv1[0] > hsv2[0]) {
+                return 1;
+            } else {
+                return 0;
+            }
         }
     }
     
