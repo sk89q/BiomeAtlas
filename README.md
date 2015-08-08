@@ -35,7 +35,7 @@ You can also define the following properties:
 	-DbiomeAtlas.mapDimension=0
 	-DbiomeAtlas.centerX=0
 	-DbiomeAtlas.centerZ=0
-	-DbiomeAtlas.scale=1
+	-DbiomeAtlas.resolution=1
 	-DbiomeAtlas.exitOnFinish=false
 
 ### Finding a Seed
