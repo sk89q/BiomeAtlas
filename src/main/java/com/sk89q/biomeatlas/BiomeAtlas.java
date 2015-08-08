@@ -37,11 +37,14 @@ public class BiomeAtlas {
             int dimension = Integer.parseInt(System.getProperty("biomeAtlas.mapDimension", "0"));
             int centerX = Integer.parseInt(System.getProperty("biomeAtlas.centerX", "0"));
             int centerZ = Integer.parseInt(System.getProperty("biomeAtlas.centerZ", "0"));
+            int resolution = Integer.parseInt(System.getProperty("biomeAtlas.resolution", "1"));
 
-            if (apothem > 0) {
+            if (apothem > 0 && resolution >= 1) {
                 World world = MinecraftServer.getServer().worldServerForDimension(dimension);
 
                 BiomeMapper mapper = new BiomeMapper();
+                mapper.setResolution(resolution);
+                mapper.setMessageRate(1000);
                 mapper.getListeners().add(new LoggerObserver());
                 mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_" + world.getSeed() + ".png"));
 

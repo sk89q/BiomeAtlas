@@ -23,22 +23,34 @@ public class CommandBiomeAtlas extends CommandBase {
     
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/biomeatlas <apothem>";
+        return "/biomeatlas <apothem> [<resolution>]";
     }
     
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length == 1) {
+        if (args.length >= 1 && args.length <= 2) {
             EntityPlayerMP player = getCommandSenderAsPlayer(sender);
             int apothem;
+            int resolution = 1;
+
             try {
                 apothem = Integer.parseInt(args[0]);
-
                 if (apothem < 0) {
-                    throw new WrongUsageException("Bigger number, foo'!");
+                    throw new WrongUsageException("Apothem should be >= 1");
                 }
             } catch (NumberFormatException e) {
                 throw new WrongUsageException(this.getCommandUsage(sender));
+            }
+
+            if (args.length >= 2) {
+                try {
+                    resolution = Integer.parseInt(args[1]);
+                    if (resolution < 1) {
+                        throw new WrongUsageException("Resolution should be >= 1");
+                    }
+                } catch (NumberFormatException e) {
+                    throw new WrongUsageException(this.getCommandUsage(sender));
+                }
             }
 
             World world = player.getEntityWorld();
@@ -46,6 +58,7 @@ public class CommandBiomeAtlas extends CommandBase {
             int centerZ = (int) player.posZ;
 
             BiomeMapper mapper = new BiomeMapper();
+            mapper.setResolution(resolution);
             mapper.getListeners().add(new BroadcastObserver());
             mapper.generate(world, centerX, centerZ, apothem, new File("biomeatlas_" + world.getSeed() + ".png"));
         } else {

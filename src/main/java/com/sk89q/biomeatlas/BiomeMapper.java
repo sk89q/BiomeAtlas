@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class BiomeMapper {
@@ -26,12 +27,29 @@ public class BiomeMapper {
     private int iconTextSpacing = 5;
     private int legendLabelSpacing = 200;
     private int messageRate = 500;
+    private int resolution = 1;
+
+    public int getMessageRate() {
+        return messageRate;
+    }
+
+    public void setMessageRate(int messageRate) {
+        checkArgument(messageRate >= 10, "messageRate >= 10");
+        this.messageRate = messageRate;
+    }
+
+    public int getResolution() {
+        return resolution;
+    }
+
+    public void setResolution(int resolution) {
+        checkArgument(resolution >= 1, "resolution >= 1");
+        this.resolution = resolution;
+    }
 
     public List<Predicate<String>> getListeners() {
         return listeners;
     }
-
-
 
     public void generate(World world, int centerX, int centerZ, int apothem, File outputFile) {
         checkNotNull(outputFile, "outputFile");
@@ -42,26 +60,27 @@ public class BiomeMapper {
         int centerChunkZ = centerZ >> 4;
         int minChunkX = centerChunkX - apothem;
         int minChunkZ = centerChunkZ - apothem;
-        int maxChunkX = centerChunkX + apothem;
-        int maxChunkZ = centerChunkZ + apothem;
+        int maxChunkX = centerChunkX + apothem - 1;
+        int maxChunkZ = centerChunkZ + apothem - 1;
 
-        int mapLength = apothem * 2 + 1;
+        int worldLength = apothem * 2;
+        int mapImageLength = (int) Math.ceil(worldLength / (double) resolution);
 
-        sendStatus("Generating a map of biomes at (" + centerX + ", " + centerZ + ") spanning " + (mapLength * 16) + ", " + (mapLength * 16) + "...");
+        sendStatus("Generating map at (" + centerX + ", " + centerZ + ") spanning " + (worldLength * 16) + ", " + (worldLength * 16) + " at " + resolution + "x...");
 
-        BufferedImage mapImage = new BufferedImage(mapLength, mapLength, BufferedImage.TYPE_INT_RGB);
+        BufferedImage mapImage = new BufferedImage(mapImageLength, mapImageLength, BufferedImage.TYPE_INT_RGB);
 
         // Progress tracking
-        int chunkCount = mapLength * mapLength;
+        int chunkCount = mapImageLength * mapImageLength;
         int completedChunks = 0;
         long lastMessageTime = System.currentTimeMillis();
 
         Set<BiomeGenBase> seenBiomes = Sets.newHashSet();
 
-        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
-                int x = chunkX - minChunkX;
-                int y = chunkZ - minChunkZ;
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX += resolution) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ += resolution) {
+                int x = (chunkX - minChunkX) / resolution;
+                int y = (chunkZ - minChunkZ) / resolution;
 
                 BiomeGenBase biome = chunkManager.getBiomeGenAt(chunkX << 4, chunkZ << 4);
                 seenBiomes.add(biome);
@@ -99,7 +118,7 @@ public class BiomeMapper {
             g2d.setFont(new Font("Sans", 0, 9));
             FontMetrics fm = g2d.getFontMetrics();
             g2d.setPaint(Color.GRAY);
-            g2d.drawString(mapLength * 16 + " x " + mapLength * 16 + " at " + centerX + ", " + centerZ,
+            g2d.drawString(String.format("%d x %d at %d, %d (%dx)", worldLength * 16, worldLength * 16, centerX, centerZ, resolution),
                     mapImage.getWidth() + legendMapSpacing, outputHeight - fm.getHeight() / 2 + statsLegendSpacing);
         } finally {
             g2d.dispose();
