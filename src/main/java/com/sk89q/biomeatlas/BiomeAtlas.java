@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
-@Mod(modid = BiomeAtlas.MODID)
+@Mod(modid = BiomeAtlas.MODID, acceptableRemoteVersions = "*")
 public class BiomeAtlas {
     
     public static final String MODID = "biomeatlas";
